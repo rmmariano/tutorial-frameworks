@@ -37,26 +37,14 @@ public class FileSerializer {
 		
 	}
 	
-	
 	public Map<String,Object> getPropertiesList(Object obj){
 		
-		Map<String,Object> props = new HashMap<String, Object>();
-		
+		Map<String,Object> props = new HashMap<String, Object>();		
 		Class<?> clazz = obj.getClass();
 		
-		for(Method m: clazz.getMethods()){
-			
-			// quero somente os métodos get, logo tem que começar com get
-			if(m.getName().startsWith("get") &&
-					// nao ter parametros
-					m.getParameterTypes().length == 0 &&
-						// o retorno diferente de void
-						m.getReturnType() != void.class &&
-							// e nao pode ser a getClass (de Object)
-							!m.getName().equals("getClass") ){
-				
-				try {
-					
+		for(Method m: clazz.getMethods()){			
+			if(isAllowedGetter(m)){				
+				try {					
 					// primeiro parametro é o objeto que sera utilizado na reflexao, depois os argumentos, caso tenha				
 					Object value = m.invoke(obj);	
 					
@@ -66,21 +54,29 @@ public class FileSerializer {
 					String propName = getterName.substring(3, 4).toLowerCase() + 
 							getterName.substring(4);
 					
-					props.put(propName, value);
-					
+					props.put(propName, value);					
 				} catch (Exception e) {
 					throw new RuntimeException("Cannot retrieve properties", e);
 				}
 				
 			}
 			
-			
-			
 		}
 
 		return props;
 	}
-	
-	
+
+	private boolean isAllowedGetter(Method m) {
+				// quero somente os métodos get, logo tem que começar com get
+		return m.getName().startsWith("get") &&
+				// nao ter parametros
+				m.getParameterTypes().length == 0 &&
+					// o retorno diferente de void
+					m.getReturnType() != void.class &&
+						// nao pode ser a getClass (de Object)
+						!m.getName().equals("getClass") &&
+							// e nao pode ter a anotacao DontIncludeOnFile no metodo
+							!m.isAnnotationPresent(DontIncludeOnFile.class);
+	}
 
 }

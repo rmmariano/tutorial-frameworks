@@ -39,9 +39,12 @@ public class Product{
 	public void setCode(String code) {
 		this.code = code;
 	}
+	
+	@DontIncludeOnFile
 	public String getSecretCode() {
 		return secretCode;
 	}
+	
 	public void setSecretCode(String secretCode) {
 		this.secretCode = secretCode;
 	}
