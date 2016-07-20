@@ -2,7 +2,12 @@ package org.cbsoft.framework;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.HashMap;
 import java.util.Map;
+
+import javax.management.RuntimeErrorException;
 
 public class FileSerializer {
 	
@@ -18,8 +23,8 @@ public class FileSerializer {
 		this.df = df;
 	}	
 	
-	public void generateFile(String filename, PropertiesGetter propGetter) {
-		byte[] bytes = df.formatData(propGetter.getPropertiesList());
+	public void generateFile(String filename, Object obj) {
+		byte[] bytes = df.formatData(getPropertiesList(obj));
 		
 		try {
 			bytes = pp.postProcess(bytes);	
@@ -31,5 +36,51 @@ public class FileSerializer {
 		}
 		
 	}
+	
+	
+	public Map<String,Object> getPropertiesList(Object obj){
+		
+		Map<String,Object> props = new HashMap<String, Object>();
+		
+		Class<?> clazz = obj.getClass();
+		
+		for(Method m: clazz.getMethods()){
+			
+			// quero somente os métodos get, logo tem que começar com get
+			if(m.getName().startsWith("get") &&
+					// nao ter parametros
+					m.getParameterTypes().length == 0 &&
+						// o retorno diferente de void
+						m.getReturnType() != void.class &&
+							// e nao pode ser a getClass (de Object)
+							!m.getName().equals("getClass") ){
+				
+				try {
+					
+					// primeiro parametro é o objeto que sera utilizado na reflexao, depois os argumentos, caso tenha				
+					Object value = m.invoke(obj);	
+					
+					// pega o nome do método
+					String getterName = m.getName();
+					
+					String propName = getterName.substring(3, 4).toLowerCase() + 
+							getterName.substring(4);
+					
+					props.put(propName, value);
+					
+				} catch (Exception e) {
+					throw new RuntimeException("Cannot retrieve properties", e);
+				}
+				
+			}
+			
+			
+			
+		}
+
+		return props;
+	}
+	
+	
 
 }
