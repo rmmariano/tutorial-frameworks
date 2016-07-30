@@ -54,6 +54,12 @@ public class FileSerializer {
 					String propName = getterName.substring(3, 4).toLowerCase() + 
 							getterName.substring(4);
 					
+					
+					if(m.isAnnotationPresent(Prefix.class)){
+						Prefix prefix = m.getAnnotation(Prefix.class);
+						value = prefix.value() + value;						
+					}
+					
 					props.put(propName, value);					
 				} catch (Exception e) {
 					throw new RuntimeException("Cannot retrieve properties", e);
