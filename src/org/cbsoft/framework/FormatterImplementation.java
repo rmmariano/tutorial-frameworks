@@ -5,9 +5,8 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+@Target(ElementType.ANNOTATION_TYPE)  // Anotação para anotar anotação
 @Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.METHOD)
-@FormatterImplementation(PrefixFormatter.class)
-public @interface Prefix {
-	String value();
+public @interface FormatterImplementation {
+	Class<? extends ValueFormatter> value();
 }

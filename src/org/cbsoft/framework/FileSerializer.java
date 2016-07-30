@@ -1,13 +1,10 @@
 package org.cbsoft.framework;
 
 import java.io.FileOutputStream;
-import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
-
-import javax.management.RuntimeErrorException;
 
 public class FileSerializer {
 	
@@ -52,13 +49,14 @@ public class FileSerializer {
 					String getterName = m.getName();
 					
 					String propName = getterName.substring(3, 4).toLowerCase() + 
-							getterName.substring(4);
+							getterName.substring(4);					
 					
+//					if(m.isAnnotationPresent(Prefix.class)){
+//						Prefix prefix = m.getAnnotation(Prefix.class);
+//						value = prefix.value() + value;						
+//					}
 					
-					if(m.isAnnotationPresent(Prefix.class)){
-						Prefix prefix = m.getAnnotation(Prefix.class);
-						value = prefix.value() + value;						
-					}
+					value = formatValue(m, value);		
 					
 					props.put(propName, value);					
 				} catch (Exception e) {
@@ -70,6 +68,25 @@ public class FileSerializer {
 		}
 
 		return props;
+	}
+
+	private Object formatValue(Method m, Object value) throws InstantiationException, IllegalAccessException {
+		
+		for(Annotation an: m.getAnnotations()){
+			// annotationType pega a classe da anotação
+			Class<?> anType = an.annotationType();
+			if(anType.isAnnotationPresent(FormatterImplementation.class)){
+				FormatterImplementation fi = anType.getAnnotation(FormatterImplementation.class);
+				Class<? extends ValueFormatter> c = fi.value();
+				ValueFormatter vf = c.newInstance();
+				// preciso pegar o valor do prefixo
+				vf.readAnnotation(an);
+				value = vf.formatValue(value);
+			}		
+		}
+		
+		return value;
+		
 	}
 
 	private boolean isAllowedGetter(Method m) {
