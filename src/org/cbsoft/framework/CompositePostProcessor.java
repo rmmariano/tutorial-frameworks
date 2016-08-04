@@ -12,9 +12,8 @@ public class CompositePostProcessor implements PostProcessor {
 		
 		processors = new ArrayList<PostProcessor>();
 		
-		for(PostProcessor p: list){
+		for(PostProcessor p: list)
 			processors.add(p);			
-		}
 		
 	}
 
